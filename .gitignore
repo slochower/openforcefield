@@ -67,3 +67,4 @@ examples/testing/test_system_conversion/out.*
 examples/testing/test_system_conversion/out2.*
 examples/testing/test_system_conversion/system.*
 
+sandbox.py
