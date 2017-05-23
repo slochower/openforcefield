@@ -154,6 +154,50 @@ def mergeStructure(proteinStructure, molStructure):
     return structure
 
 
+def generateTopologyFromRDKMol(molecule):
+    """
+    06/04/2017
+
+    Generate an OpenMM Topology object from an RDKit molecule.
+
+    Parameters
+    ----------
+    molecule : openeye.oechem.OEMol
+        The molecule from which a Topology object is to be generated.
+
+    Returns
+    -------
+    topology : simtk.openmm.app.Topology
+        The Topology object generated from `molecule`.
+
+    """
+    # Create a Topology object with one Chain and one Residue.
+    from simtk.openmm.app import Topology
+    topology = Topology()
+    chain = topology.addChain()
+    resname = molecule.GetProp("_Name")
+    residue = topology.addResidue(resname, chain)
+
+    # Create atoms in the residue.
+    for atom in molecule.GetAtoms():
+        try:
+            name = atom.GetPropsAsDict()["_TriposAtomName"]
+        except:
+            name = str(atom.GetIdx()) #RDKit molecule type does not store unique name string for each atom
+        element = elem.Element.getByAtomicNumber(atom.GetAtomicNum())
+        atom = topology.addAtom(name, element, residue)
+
+    # Create bonds.
+    # atoms = { atom.name : atom for atom in topology.atoms() }
+    # for bond in molecule.GetBonds():
+    #     topology.addBond(atoms[str(bond.GetBeginAtom().GetIdx())], atoms[str(bond.GetEndAtom().GetIdx())])
+
+    atoms = { atom.index : atom for atom in topology.atoms() }
+    for bond in molecule.GetBonds():
+        topology.addBond(atoms[bond.GetBeginAtom().GetIdx()], atoms[bond.GetEndAtom().GetIdx()])
+
+    return topology
+
 def generateTopologyFromOEMol(molecule):
     """
     Generate an OpenMM Topology object from an OEMol molecule.
@@ -346,6 +390,29 @@ def setPositionsInOEMol(molecule, positions):
         for j in range(3):
             coordlist.append( pos_unitless[idx][j])
     molecule.SetCoords(OEFloatArray(coordlist))
+
+def extractPositionsFromRDKMol(molecule):
+    """Get the positions from an RDKit molecule and return in a position array with units via simtk.unit, i.e. foramtted for OpenMM.
+
+    Arguments:
+    ----------
+    molecule : RDKMol
+        RDKit molecule
+
+    Returns:
+    --------
+    positions : Nx3 array
+        Unit-bearing via simtk.unit Nx3 array of coordinates
+    """
+    positions = unit.Quantity(numpy.zeros([molecule.GetNumAtoms(), 3], numpy.float32), unit.angstroms)
+
+
+    for index in range(molecule.GetNumAtoms()):
+        coord = molecule.GetConformer().GetAtomPosition(index)
+        positions[index,:] = unit.Quantity([coord.x, coord.y, coord.z], unit.angstroms)
+
+    return positions
+
 
 def extractPositionsFromOEMol(molecule):
     """Get the positions from an OEMol and return in a position array with units via simtk.unit, i.e. foramtted for OpenMM.

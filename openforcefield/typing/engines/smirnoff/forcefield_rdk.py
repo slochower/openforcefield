@@ -5,6 +5,7 @@ import lxml.etree as etree
 
 from simtk.openmm.app import element as elem
 from simtk.openmm.app import Topology
+from openforcefield.utils import generateTopologyFromRDKMol, get_data_filename
 
 import os
 import math
@@ -18,85 +19,71 @@ import time
 
 import networkx
 
-#import smarty.environment as env
 import itertools
 
+
+from openforcefield.typing.chemistry import ChemicalEnvironment, SMIRKSParsingError
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-m = Chem.MolFromMolFile("/home/shuzhe/anaconda2/envs/my-rdkit-env/share/RDKit/Docs/Book/data/input.mol")
-for name in m.GetPropNames():
-    print name
-m.GetProp("_Name")
-generateTopologyFromRDKMol(m)
-qmol = Chem.MolFromSmarts( '[cH0:1][c:2]([cH0])!@[CX3!r:3]=[NX2!r:4]' )
-def a():
-    try:
-        qmol = Chem.MolFromSmarts( '[cH0:][c:2]([cH0])!@[CX3!r:3]=[NX2!r:4]' )
-    except Exception as msg:
-        print msg
-a()
-m = Chem.AddHs(m)
-AllChem.ComputeGasteigerCharges(m)
-tmp = []
-for atom in m.GetAtoms():
-    tmp.append(atom.GetProp('_GasteigerCharge'))
-    # print atom.GetAtomicNum()
-    # print atom.GetIdx()
-sum([float(i) for i in tmp])
-
-print type(m.GetAtoms()[0])
-type(m.GetAtoms())
-print(Chem.MolToMolBlock(m))
-n = m.__copy__()
-m
-n
-Chem.Kekulize(m)
-for bond in  m.GetBonds():
-    print bond.GetBondTypeAsDouble()
+# m = Chem.MolFromMolFile("/home/shuzhe/anaconda2/envs/my-rdkit-env/share/RDKit/Docs/Book/data/input.mol")
+# for name in m.GetPropNames():
+#     print name
+# m.GetProp("_Name")
+# generateTopologyFromRDKMol(m)
+# qmol = Chem.MolFromSmarts( '[cH0:1][c:2]([cH0])!@[CX3!r:3]=[NX2!r:4]' )
+# def a():
+#     try:
+#         qmol = Chem.MolFromSmarts( '[cH0:][c:2]([cH0])!@[CX3!r:3]=[NX2!r:4]' )
+#     except Exception as msg:
+#         print msg
+# a()
+# m = Chem.AddHs(m)
+# AllChem.ComputeGasteigerCharges(m)
+# tmp = []
+# for atom in m.GetAtoms():
+#     tmp.append(atom.GetProp('_GasteigerCharge'))
+#     # print atom.GetAtomicNum()
+#     # print atom.GetIdx()
+# sum([float(i) for i in tmp])
+#
+# print type(m.GetAtoms()[0])
+# type(m.GetAtoms())
+# print(Chem.MolToMolBlock(m))
+# n = m.__copy__()
+# m
+# n
+# Chem.Kekulize(m)
+# for bond in  m.GetBonds():
+#     print bond.GetBondTypeAsDouble()
 
 #########################################################################3####
 
 
-def generateTopologyFromRDKMol(molecule):
-    """
-    06/04/2017
-
-    Generate an OpenMM Topology object from an RDKit molecule.
-
-    Parameters
-    ----------
-    molecule : openeye.oechem.OEMol
-        The molecule from which a Topology object is to be generated.
-
-    Returns
-    -------
-    topology : simtk.openmm.app.Topology
-        The Topology object generated from `molecule`.
-
-    """
-    # Create a Topology object with one Chain and one Residue.
-    from simtk.openmm.app import Topology
-    topology = Topology()
-    chain = topology.addChain()
-    resname = molecule.GetProp("_Name")
-    residue = topology.addResidue(resname, chain)
-
-    # Create atoms in the residue.
-    for atom in molecule.GetAtoms():
-        name = str(atom.GetIdx()) #RDKit molecule type does not store unique name string for each atom
-        element = elem.Element.getByAtomicNumber(atom.GetAtomicNum())
-        atom = topology.addAtom(name, element, residue)
-
-    # Create bonds.
-    atoms = { atom.name : atom for atom in topology.atoms() }
-    for bond in molecule.GetBonds():
-        topology.addBond(atoms[str(bond.GetBeginAtom().GetIdx())], atoms[str(bond.GetEndAtom().GetIdx())])
-
-    return topology
-
 #############3
-def getSMIRKSMatches_RDKMol(rdkmol, smirks, aromaticity_model = None): 
+# def getSMIRKSMatches_RDKMol(rdkmol, smirks, aromaticity_model = None):
+#     """Find all sets of atoms in the provided rdkmol that match the provided SMIRKS strings.
+#     06/04/2017
+#
+#     Parameters
+#     ----------
+#     rdkmol : RDKit rdkmol
+#         RDKit molecule to process with the SMIRKS in order to find matches
+#     smirks : str
+#         SMIRKS string with tagged atoms.
+#         If there are N tagged atoms numbered 1..N, the resulting matches will be N-tuples of atoms that match the corresponding tagged atoms.
+#     aromaticity_model : str (optional)
+#         OpenEye aromaticity model designation as a string, such as "OEAroModel_MDL". Default: None. If none is provided, molecule is processed exactly as provided; otherwise it is prepared with this aromaticity model prior to querying.
+#
+#     Returns
+#     -------
+#     matches : list of tuples of atoms numbers
+#         matches[index] is an N-tuple of atom numbers from the rdkmol
+#         Matches are returned in no guaranteed order.
+#     """
+#
+#     # Make a copy of molecule so we don't influence original (probably safer than deepcopy per C Bayly)
+def getSMIRKSMatches_RDKMol(rdkmol, smirks, aromaticity_model = None): #TODO reread (sw)
     """Find all sets of atoms in the provided rdkmol that match the provided SMIRKS strings.
     06/04/2017
 
@@ -119,6 +106,7 @@ def getSMIRKSMatches_RDKMol(rdkmol, smirks, aromaticity_model = None):
 
     # Make a copy of molecule so we don't influence original (probably safer than deepcopy per C Bayly)
     mol = Chem.Mol(rdkmol)
+    # mol = Chem.AddHs(mol)
 
     # Set up query.
     qmol = Chem.MolFromSmarts(smirks)   #cannot catch the error
@@ -129,34 +117,34 @@ def getSMIRKSMatches_RDKMol(rdkmol, smirks, aromaticity_model = None):
             ind_map[map_num - 1] = atom.GetIdx()
     map_list = [ind_map[x] for x in sorted(ind_map)]
 
-    # Determine aromaticity model
-    if aromaticity_model:  #TODO  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if type(aromaticity_model) == str:
-            # Check if the user has provided a manually-specified aromaticity_model
-            if hasattr(oechem, aromaticity_model):
-                oearomodel = getattr(oechem, aromaticity_model)
-            else:
-                raise ValueError("Error: provided aromaticity model not recognized by oechem.")
-        else:
-            raise ValueError("Error: provided aromaticity model must be a string.")
+#     # Determine aromaticity model
+#     if aromaticity_model:  #TODO  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#         if type(aromaticity_model) == str:
+#             # Check if the user has provided a manually-specified aromaticity_model
+#             if hasattr(oechem, aromaticity_model):
+#                 oearomodel = getattr(oechem, aromaticity_model)
+#             else:
+#                 raise ValueError("Error: provided aromaticity model not recognized by oechem.")
+#         else:
+#             raise ValueError("Error: provided aromaticity model must be a string.")
 
-        # If aromaticity model was provided, prepare molecule
-        oechem.OEClearAromaticFlags( mol)
-        oechem.OEAssignAromaticFlags( mol, oearomodel)
-        # avoid running OEPrepareSearch or we lose desired aromaticity, so instead:
-        oechem.OEAssignHybridization( mol)
-        oechem.OEAssignFormalCharges( mol)
-        oechem.OEAssignImplicitHydrogens( mol)
+#         # If aromaticity model was provided, prepare molecule
+#         oechem.OEClearAromaticFlags( mol)
+#         oechem.OEAssignAromaticFlags( mol, oearomodel)
+#         # avoid running OEPrepareSearch or we lose desired aromaticity, so instead:
+#         oechem.OEAssignHybridization( mol)
+#         oechem.OEAssignFormalCharges( mol)
+#         oechem.OEAssignImplicitHydrogens( mol)
 
     # Perform matching on each mol
     matches = list()
 
-    for match in mol.GetSubstructMatches(qmol) :
-        atom_indices = dict()
+    for match in mol.GetSubstructMatches(qmol, uniquify = False) :
         mas = [match[x] for x in map_list]
         matches.append(tuple(mas))
 
     return matches
+
     # unique = False
     # # We require non-unique matches, i.e. all matches
     # ss = oechem.OESubSearch(qmol)
@@ -620,7 +608,7 @@ class ForceField(object):
 
         # Store forcefield version info and, if present, aromaticity model
         root = trees[0].getroot()
-        if root.tag=='SMIRFF':
+        if root.tag=='SMIRFF' or root.tag=='SMIRNOFF':
             if 'version' in root.attrib:
                 #TO DO: Should this be a float, a string, or something else?
                 self.version = float(root.attrib['version'])
@@ -635,7 +623,7 @@ class ForceField(object):
             else:
                 self._use_fractional_bondorder = False
         else:
-            raise ValueError("Error: ForceField parses a SMIRFF forcefield, but this does not appear to be one as the root tag is %s." % root.tag)
+            raise ValueError("Error: ForceField parses a SMIRNOFF forcefield, but this does not appear to be one as the root tag is %s." % root.tag)
 
         # Load force definitions
         for tree in trees:
@@ -872,36 +860,37 @@ class ForceField(object):
         # TODO: Cache charged molecules here to save time in future calls to createSystem
 
         # Expand conformers
-        if not openeye.oechem.OEChemIsLicensed(): raise(ImportError("Need License for OEChem!"))
-        if not openeye.oeomega.OEOmegaIsLicensed(): raise(ImportError("Need License for OEOmega!"))
-        omega = openeye.oeomega.OEOmega()  #comformer geneartor (sw)
-        omega.SetMaxConfs(800)
-        omega.SetCanonOrder(False)
-        omega.SetSampleHydrogens(True)
-        omega.SetEnergyWindow(15.0)
-        omega.SetRMSThreshold(1.0)
-        omega.SetStrictStereo(True) #Don't generate random stereoisomer if not specified
-        charged_copy = openeye.oechem.OEMol(molecule)
-        status = omega(charged_copy)
-        if not status:
-            raise(RuntimeError("Omega returned error code %s" % status))
+        # if not openeye.oechem.OEChemIsLicensed(): raise(ImportError("Need License for OEChem!"))
+        # if not openeye.oeomega.OEOmegaIsLicensed(): raise(ImportError("Need License for OEOmega!"))
+        # omega = openeye.oeomega.OEOmega()  #comformer geneartor (sw)
+        # omega.SetMaxConfs(800)
+        # omega.SetCanonOrder(False)
+        # omega.SetSampleHydrogens(True)
+        # omega.SetEnergyWindow(15.0)
+        # omega.SetRMSThreshold(1.0)
+        # omega.SetStrictStereo(True) #Don't generate random stereoisomer if not specified
+        # charged_copy = openeye.oechem.OEMol(molecule)
+        # status = omega(charged_copy)
+        # if not status:
+        #     raise(RuntimeError("Omega returned error code %s" % status))
 
-        # Assign charges
-        status = openeye.oequacpac.OEAssignPartialCharges(charged_copy, getattr(oequacpac, oechargemethod), False, False)
-        if not status:
-            raise(RuntimeError("OEAssignPartialCharges returned error code %s" % status))
-        # Our copy has the charges we want but not the right conformation. Copy charges over. Also copy over Wiberg bond orders if present
-        partial_charges = []
-        partial_bondorders = []
-        if modifycharges:
-            for atom in charged_copy.GetAtoms():
-                partial_charges.append( atom.GetPartialCharge() )
-            for (idx,atom) in enumerate(molecule.GetAtoms()):
-                atom.SetPartialCharge( partial_charges[idx] )
-        for bond in charged_copy.GetBonds():
-            partial_bondorders.append( bond.GetData("WibergBondOrder"))
-        for (idx, bond) in enumerate(molecule.GetBonds()):
-            bond.SetData("WibergBondOrder", partial_bondorders[idx])
+        # # Assign charges
+        # status = openeye.oequacpac.OEAssignPartialCharges(charged_copy, getattr(oequacpac, oechargemethod), False, False)
+        # if not status:
+        #     raise(RuntimeError("OEAssignPartialCharges returned error code %s" % status))
+        # # Our copy has the charges we want but not the right conformation. Copy charges over. Also copy over Wiberg bond orders if present
+        # partial_charges = []
+        # partial_bondorders = []
+        # if modifycharges:
+        #     for atom in charged_copy.GetAtoms():
+        #         partial_charges.append( atom.GetPartialCharge() )
+        #     for (idx,atom) in enumerate(molecule.GetAtoms()):
+        #         atom.SetPartialCharge( partial_charges[idx] )
+        # for bond in charged_copy.GetBonds():
+        #     partial_bondorders.append( bond.GetData("WibergBondOrder"))
+        # for (idx, bond) in enumerate(molecule.GetBonds()):
+        #     bond.SetData("WibergBondOrder", partial_bondorders[idx])
+        return
 
 
     def createSystem(self, topology, molecules, nonbondedMethod=NoCutoff, nonbondedCutoff=1.0*unit.nanometer,
@@ -961,33 +950,43 @@ class ForceField(object):
             self.parseXMLTrees()
 
         # Make a deep copy of the input molecules so they are not modified by charging
-        # molecules = copy.deepcopy(molecules)
-        molecules = molecules.__deepcopy__() #changed (sw)
+        molecules = copy.deepcopy(molecules)
+        # molecules = molecules.__deepcopy__() #changed (sw)
 
         ###############################################################################################33
         ###############################################################################################33
         ###############################################################################################33
         # Charge molecules, if needed
+        """
+        Temporary Placing of Partial Charge Assignments
+        """
+        for molecule in molecules:
+            charges = [float(atom.GetPropsAsDict()["_TriposPartialCharge"]) if "_TriposPartialCharge" in atom.GetPropsAsDict() else 0.0 for atom in molecule.GetAtoms()]
+            for idx, atom in enumerate(molecule.GetAtoms()):
+                atom.SetDoubleProp("PartialCharge", charges[idx])
+
+
+
         if chargeMethod == None:
             # Don't charge molecules
             if verbose: print('Charges specified in provided molecules will be used.')
             oechargemethod = None
-        elif chargeMethod == 'BCC':  #RDKit does not have that option (sw)
-            # Check if we have a BondChargeCorrectionGenerator populated
-            force_generators = { force.__class__.__name__ : force for force in self._forces }
-            if ('BondChargeCorrectionGenerator' in force_generators):
-                oechargemethod = force_generators['BondChargeCorrectionGenerator']._oechargemethod
-                if verbose: print('Applying oechem.oequacpac.OEAssignPartialCharges with initial charge method "%s" followed by bond charge corrections.' % oechargemethod)
-            else:
-                # Don't charge molecules if no bond charge corrections were found
-                oechargemethod = None
-        elif type(chargeMethod) == str:
-            # Check if the user has provided a manually-specified charge method
-            if hasattr(oequacpac, chargeMethod):
-                oechargemethod = chargeMethod
-                if verbose: print('Applying oechem.oequacpac.OEAssignPartialCharges with specified charge method "%s".' % oechargemethod)
-            else:
-                raise Exception("Unknown chargeMethod '%s'"% chargeMethod)
+        # elif chargeMethod == 'BCC':  #RDKit does not have that option (sw)
+        #     # Check if we have a BondChargeCorrectionGenerator populated
+        #     force_generators = { force.__class__.__name__ : force for force in self._forces }
+        #     if ('BondChargeCorrectionGenerator' in force_generators):
+        #         oechargemethod = force_generators['BondChargeCorrectionGenerator']._oechargemethod
+        #         if verbose: print('Applying oechem.oequacpac.OEAssignPartialCharges with initial charge method "%s" followed by bond charge corrections.' % oechargemethod)
+        #     else:
+        #         # Don't charge molecules if no bond charge corrections were found
+        #         oechargemethod = None
+        # elif type(chargeMethod) == str:
+        #     # Check if the user has provided a manually-specified charge method
+        #     if hasattr(oequacpac, chargeMethod):
+        #         oechargemethod = chargeMethod
+        #         if verbose: print('Applying oechem.oequacpac.OEAssignPartialCharges with specified charge method "%s".' % oechargemethod)
+        #     else:
+        #         raise Exception("Unknown chargeMethod '%s'"% chargeMethod)
         else:
             raise Exception("Unknown chargeMethod ''%s'"% str(chargeMethod))
 
@@ -999,7 +998,6 @@ class ForceField(object):
 
                     ## originally topology = _Topology.... line is here
 
-
         # If the charge method was not an OpenEye AM1 method and we need Wiberg bond orders, obtain Wiberg bond orders
         if not (type(chargeMethod) == str and 'AM1' in chargeMethod) and self._use_fractional_bondorder:
             if verbose: print("Doing an AM1 calculation to get Wiberg bond orders.")
@@ -1008,12 +1006,9 @@ class ForceField(object):
                 self._assignPartialCharges(molecule, "OECharges_AM1", modifycharges = False)
         ###############################################################################################33
         ###############################################################################################33
-        ###############################################################################################33
 
         # Work with a modified form of the topology that provides additional accessors.
         topology = _Topology(topology, molecules)
-
-
 
         # Update bond orders stored in the topology if needed
         if self._use_fractional_bondorder:  #TODO partial bond orders (sw)
@@ -1131,8 +1126,8 @@ def _validateSMIRKS(smirks, node=None): #TODO may not be achievable with RDKit
        Node of etree with 'sourceline' attribute.
 
     """
-    qmol = oechem.OEQMol()
-    if not oechem.OEParseSmarts(qmol, smirks):
+    # print Chem.MolFromSmarts(smirks)
+    if not Chem.MolFromSmarts(smirks):
         if (node is not None) and ('sourceline' in node.attrib):
             raise Exception("Line %s: Error parsing SMIRKS '%s'" % (node.attrib['sourceline'], node.attrib['smirks']))
         else:
@@ -1592,11 +1587,11 @@ class PeriodicTorsionGenerator(object):
 
             # Check that the SMIRKS pattern matches the type it's supposed to
             try: #TODO interface with environment class (sw)
-                chemenv = env.ChemicalEnvironment(self.smirks)
+                chemenv = ChemicalEnvironment(self.smirks)
                 thistype = chemenv.getType()
                 if thistype != 'Torsion':
                     raise Exception("Error: SMIRKS pattern %s (parameter %s) does not specify a %s torsion, but it is supposed to." % (self.smirks, self.pid, 'Proper'))
-            except env.SMIRKSParsingError:
+            except SMIRKSParsingError:
                 print("Warning: Could not confirm whether smirks pattern %s is a valid %s torsion." % (self.smirks, self.torsiontype))
 
 
@@ -1634,11 +1629,11 @@ class PeriodicTorsionGenerator(object):
 
             # Check that the SMIRKS pattern matches the type it's supposed to
             try:
-                chemenv = env.ChemicalEnvironment(self.smirks)
+                chemenv = ChemicalEnvironment(self.smirks)
                 thistype = chemenv.getType()
                 if thistype != 'Improper':
                     raise Exception("Error: SMIRKS pattern %s (parameter %s) does not specify a %s torsion, but it is supposed to." % (self.smirks, self.pid, 'Improper'))
-            except env.SMIRKSParsingError:
+            except SMIRKSParsingError:
                 print("Warning: Could not confirm whether smirks pattern %s is a valid %s torsion." % (self.smirks, self.torsiontype))
 
 
@@ -1928,7 +1923,8 @@ class NonbondedGenerator(object):
             # Retrieve charges from reference molecule, stored by atom index
             charge_by_atom = {}
             for atom in reference_molecule.GetAtoms():
-                charge_by_atom[atom.GetIdx()] = atom.GetPartialCharge()
+                # charge_by_atom[atom.GetIdx()] = atom.GetPartialCharge()
+                charge_by_atom[atom.GetIdx()] = atom.GetPropsAsDict()["PartialCharge"]
 
             # Loop over mappings and copy NB parameters from reference molecule
             # to other instances of the molecule
