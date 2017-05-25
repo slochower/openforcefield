@@ -232,6 +232,53 @@ class _Topology(Topology):
         # Get/initialize bond orders
         self._updateBondOrders()
 
+        # Track constraints
+        self._constrainedAtomPairs = dict()
+
+    def constrainAtomPair(self, iatom, jatom, distance=True):
+        """
+        Mark a pair of atoms as constrained.
+
+        Parameters
+        ----------
+        iatom, jatom : int
+            Indices of atoms to mark as constrained.
+        distance : simtk.unit.Quantity, optional, default=True
+            Constraint distance if constraint has been applied,
+            or True if no constraint has yet been applied
+        """
+        # Check that constraint hasn't already been specified.
+        if (iatom,jatom) in self._constrainedAtomPairs:
+            existing_distance = self._constrainedAtomPairs[(iatom,jatom)]
+            if unit.is_quantity(existing_distance) and (distance is True):
+                raise Exception('Atoms (%d,%d) already constrained with distance %s but attempting to override with unspecified distance' % (iatom, jatom, existing_distance))
+            if (existing_distance is True) and (distance is True):
+                raise Exception('Atoms (%d,%d) already constrained with unspecified distance but attempting to override with unspecified distance' % (iatom, jatom))
+
+        self._constrainedAtomPairs[(iatom,jatom)] = distance
+        self._constrainedAtomPairs[(jatom,iatom)] = distance
+
+    def atomPairIsConstrained(self, iatom, jatom):
+        """
+        Check if a pair of atoms are marked as constrained.
+
+        Parameters
+        ----------
+        iatom, jatom : int
+            Indices of atoms to mark as constrained.
+
+        Returns
+        -------
+        distance : simtk.unit.Quantity or bool
+            True if constrained but constraints have not yet been applied
+            Distance if constraint has already been added to System
+
+        """
+        if (iatom,jatom) in self._constrainedAtomPairs:
+            return self._constrainedAtomPairs[(iatom,jatom)]
+        else:
+            return False
+
     def angles(self):
         """
         Get an iterator over all i-j-k angles.
