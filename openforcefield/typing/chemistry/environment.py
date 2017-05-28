@@ -1366,4 +1366,3 @@ class ImproperChemicalEnvironment(AngleChemicalEnvironment):
 
     def _checkType(self):
         return (self.getType() == 'Improper'), 'Improper'
-

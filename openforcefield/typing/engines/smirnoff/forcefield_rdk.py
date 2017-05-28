@@ -83,7 +83,7 @@ from rdkit.Chem import AllChem
 #     """
 #
 #     # Make a copy of molecule so we don't influence original (probably safer than deepcopy per C Bayly)
-def getSMIRKSMatches_RDKMol(rdkmol, smirks, aromaticity_model = None): #TODO reread (sw)
+def getSMIRKSMatches_RDKMol(rdkmol, smirks, aromaticity_model = None):
     """Find all sets of atoms in the provided rdkmol that match the provided SMIRKS strings.
     06/04/2017
 
@@ -484,7 +484,7 @@ class _Topology(Topology):
                         self._bondorders_by_atomindices[topat1] = {}
                     if not topat2 in self._bondorders_by_atomindices:
                         self._bondorders_by_atomindices[topat2] = {}
-                    self._bondorders_by_atomindices[topat2][topat1] = order #used for computationa convenience (sw)
+                    self._bondorders_by_atomindices[topat2][topat1] = order #used for computational convenience (sw)
                     self._bondorders_by_atomindices[topat1][topat2] = order
 
         # Loop over bonds in topology and store orders in the same order
@@ -495,7 +495,7 @@ class _Topology(Topology):
             order = self._bondorders_by_atomindices[topat1][topat2]
             self._bondorders.append(order)
 
-    def unrollSMIRKSMatches(self, smirks, aromaticity_model = None):  #TODO interact with OEChem and Smirk (sw)
+    def unrollSMIRKSMatches(self, smirks, aromaticity_model = None):
         """Find all sets of atoms in the topology that match the provided SMIRKS strings.
 
         Parameters
@@ -1100,7 +1100,7 @@ class ForceField(object):
         # Add forces to the System
         for force in self._forces:
             if 'createForce' in dir(force):
-                force.createForce(system, topology, verbose=verbose, **kwargs) #createForce is in every individual generator class (sw)
+                force.createForce(system, topology, verbose=verbose, **kwargs)
 
         # Add center-of-mass motion removal, if requested
         if removeCMMotion:
@@ -1350,6 +1350,116 @@ class ImproperDict(TransformedDict):
 # Force generators
 #=============================================================================================
 
+#=============================================================================================
+# Force generators
+#=============================================================================================
+
+## @private
+class ConstraintGenerator(object):
+    """A ConstraintGenerator adds constraints.
+
+    The ConstraintGenerator must be applied before HarmonicBondGenerator and HarmonicAngleGenerator if constrained bonds are to not also have harmonic bond terms added.
+
+    ConstraintGenerator will mark bonds as being constrained for HarmonicBondGenerator to assign constraints to equilibrium bond lengths,
+    while constraints with distances specified will be assigned by ConstraintGenerator.
+
+    """
+
+    class ConstraintType(object):
+        """A SMIRNOFF constraint type."""
+        def __init__(self, node, parent):
+            self.smirks = _validateSMIRKS(node.attrib['smirks'], node=node)
+            self.pid = _extractQuantity(node, parent, 'id')
+            if 'distance' in node.attrib:
+                # Constraint distance is specified, will be handled by ConstraintGenerator
+                self.distance = _extractQuantity(node, parent, 'distance')
+            else:
+                # Constraint to equilibrium bond length, handled by HarmonicBondGenerator
+                self.distance = True
+
+    def __init__(self, forcefield):
+        self.ff = forcefield
+        self._constraint_types = list()
+
+    def registerConstraint(self, node, parent):
+        """Register a SMIRNOFF constraint type definition."""
+        constraint = ConstraintGenerator.ConstraintType(node, parent)
+        self._constraint_types.append(constraint)
+
+    @staticmethod
+    def parseElement(element, ff):
+        # Find existing force generator or create new one.
+        existing = [f for f in ff._forces if isinstance(f, ConstraintGenerator)]
+        if len(existing) == 0:
+            generator = ConstraintGenerator(ff)
+            ff.registerGenerator(generator)
+        else:
+            generator = existing[0]
+
+        # Register all SMIRNOFF constraint definitions.
+        for constraint in element.findall('Constraint'):
+            generator.registerConstraint(constraint, element)
+
+    def createForce(self, system, topology, verbose=False, **kwargs):
+        # Iterate over all defined constraint types, allowing later matches to override earlier ones.
+        constraints = ValenceDict()
+        for constraint in self._constraint_types:
+            for atom_indices in topology.unrollSMIRKSMatches(constraint.smirks, aromaticity_model = self.ff._aromaticity_model):
+                constraints[atom_indices] = constraint
+
+        if verbose:
+            print('')
+            print('ConstraintGenerator:')
+            print('')
+            for constraint in self._constraint_types:
+                print('%64s : %8d matches' % (constraint.smirks, len(topology.unrollSMIRKSMatches(constraint.smirks, aromaticity_model = self.ff._aromaticity_model))))
+            print('')
+
+        for (atom_indices, constraint) in constraints.items():
+            # Update constrained atom pairs in topology
+            topology.constrainAtomPair(atom_indices[0], atom_indices[1], constraint.distance)
+            # If a distance is specified, add the constraint here.
+            # Otherwise, the equilibrium bond length will be used to constrain the atoms in HarmonicBondGenerator
+            if constraint.distance is not True:
+                system.addConstraint(atom_indices[0], atom_indices[1], constraint.distance)
+
+        if verbose: print('%d constraints added' % (len(constraints)))
+
+    def labelForce(self, rdkmol, verbose=False, **kwargs):  #(sw) needs modification?
+        """Take a provided OEMol and parse Constraint terms for this molecule.
+
+        Parameters
+        ----------
+            rdkmol : RDKit Chem object for molecule to be examined
+
+        Returns
+        ---------
+            force_terms: list
+                Returns a list of tuples, [ ([atom id 1, ... atom id N], parameter id, smirks) , (....), ... ] for all forces of this type which would be applied.
+        """
+
+        # Iterate over all defined constraint SMIRKS, allowing later matches to override earlier ones.
+        constraints = ValenceDict()
+        for constraint in self._constraint_types:
+            for atom_indices in topology.getSMIRKSMatches_RDKMol(rdkmol, constraint.smirks, aromaticity_model = self.ff._aromaticity_model):
+                constraints[atom_indices] = constraint
+
+        if verbose:
+            print('')
+            print('ConstraintGenerator:')
+            print('')
+            for constraint in self._constraint_types:
+                print('%64s : %8d matches' % (constraint.smirks, len(topology.getSMIRKSMatches_RDKMol(rdkmol, constraint.smirks, aromaticity_model = self.ff._aromaticity_model))))
+            print('')
+
+        # Add all bonds to the output list
+        force_terms = []
+        for (atom_indices, constraint) in constraints.items():
+            force_terms.append( ([atom_indices[0], atom_indices[1]], constraint.pid, constraint.smirks) )
+
+        return force_terms
+
+parsers["Constraints"] = ConstraintGenerator.parseElement
 
 ## @private
 class HarmonicBondGenerator(object):
@@ -1358,7 +1468,7 @@ class HarmonicBondGenerator(object):
     class BondType(object):
         """A SMIRFF bond type."""
         def __init__(self, node, parent):
-            self.smirks = _validateSMIRKS(node.attrib['smirks'], node=node) #TODO change? (sw)
+            self.smirks = _validateSMIRKS(node.attrib['smirks'], node=node)
             self.pid = _extractQuantity(node, parent, 'id')
 
             # Determine if we are using fractional bond orders for this bond
@@ -1633,13 +1743,13 @@ class PeriodicTorsionGenerator(object):
                 raise ValueError("Error: Attempting to process an invalid torsion type as a Proper.")
 
             # Check that the SMIRKS pattern matches the type it's supposed to
-            try: #TODO interface with environment class (sw)
-                chemenv = ChemicalEnvironment(self.smirks)
-                thistype = chemenv.getType()
-                if thistype != 'Torsion':
-                    raise Exception("Error: SMIRKS pattern %s (parameter %s) does not specify a %s torsion, but it is supposed to." % (self.smirks, self.pid, 'Proper'))
-            except SMIRKSParsingError:
-                print("Warning: Could not confirm whether smirks pattern %s is a valid %s torsion." % (self.smirks, self.torsiontype))
+            # try: #TODO interface with environment class (sw)
+            #     chemenv = ChemicalEnvironment(self.smirks)
+            #     thistype = chemenv.getType()
+            #     if thistype != 'Torsion':
+            #         raise Exception("Error: SMIRKS pattern %s (parameter %s) does not specify a %s torsion, but it is supposed to." % (self.smirks, self.pid, 'Proper'))
+            # except SMIRKSParsingError:
+            #     print("Warning: Could not confirm whether smirks pattern %s is a valid %s torsion." % (self.smirks, self.torsiontype))
 
 
             if 'fractional_bondorder' in parent.attrib:
@@ -1675,13 +1785,13 @@ class PeriodicTorsionGenerator(object):
                 raise ValueError("Error: Attempting to process an invalid torsion type as an improper.")
 
             # Check that the SMIRKS pattern matches the type it's supposed to
-            try:
-                chemenv = ChemicalEnvironment(self.smirks)
-                thistype = chemenv.getType()
-                if thistype != 'Improper':
-                    raise Exception("Error: SMIRKS pattern %s (parameter %s) does not specify a %s torsion, but it is supposed to." % (self.smirks, self.pid, 'Improper'))
-            except SMIRKSParsingError:
-                print("Warning: Could not confirm whether smirks pattern %s is a valid %s torsion." % (self.smirks, self.torsiontype))
+            # try:
+            #     chemenv = ChemicalEnvironment(self.smirks)
+            #     thistype = chemenv.getType()
+            #     if thistype != 'Improper':
+            #         raise Exception("Error: SMIRKS pattern %s (parameter %s) does not specify a %s torsion, but it is supposed to." % (self.smirks, self.pid, 'Improper'))
+            # except SMIRKSParsingError:
+            #     print("Warning: Could not confirm whether smirks pattern %s is a valid %s torsion." % (self.smirks, self.torsiontype))
 
 
             if 'fractional_bondorder' in parent.attrib:
