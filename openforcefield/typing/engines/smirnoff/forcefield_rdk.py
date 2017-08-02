@@ -464,8 +464,9 @@ class _Topology(Topology):
                 # Get bond order
                 if not Wiberg:  #TODO here (sw)
                     # order = bond.GetOrder()
-                    Chem.Kekulize(mol)
-                    order = int(bond.GetBondTypeAsDouble())
+                    #Chem.Kekulize(mol)
+                    #order = int(bond.GetBondTypeAsDouble())
+                    order = (bond.GetBondTypeAsDouble())
                 # else:
                 #     order = bond.GetData('WibergBondOrder')
                 # Convert atom numbers to topology atom numbers; there may be multiple matches
