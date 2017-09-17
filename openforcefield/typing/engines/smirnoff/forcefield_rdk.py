@@ -1,4 +1,5 @@
 import sys
+import math
 import string
 
 import lxml.etree as etree
@@ -421,42 +422,11 @@ class _Topology(Topology):
         self._bondorders_by_atomindices = dict()
         # Loop over reference molecules and pull bond orders
 
-        # for mol in self._reference_molecules:
-        #     # Pull mappings for this molecule
-        #     mappings = self._reference_to_topology_atom_mappings[mol]
-        #     # Loop over bonds
-        #     for idx,bond in enumerate(mol.GetBonds()):
-        #         # Get atom indices involved in bond
-        #         at1 = bond.GetBgn().GetIdx()
-        #         at2 = bond.GetEnd().GetIdx()
-        #         # Get bond order
-        #         if not Wiberg:
-        #             order = bond.GetOrder()
-        #         else:
-        #             order = bond.GetData('WibergBondOrder')
-        #         # Convert atom numbers to topology atom numbers; there may be multiple matches
-        #         for mapping in mappings:
-        #             topat1 = None
-        #             topat2 = None
-        #             for mapatom in mapping:
-        #                 if mapatom==at1:
-        #                     topat1 = mapping[mapatom]
-        #                 elif mapatom==at2:
-        #                     topat2 = mapping[mapatom]
-        #             if topat1==None or topat2==None:
-        #                 raise ValueError("No mapping found for these topology atoms (indices %s-%s)." % (at1, at2))
-        #             # Store bond order to re-use below and elsewhere; store in both directions
-        #             if not topat1 in self._bondorders_by_atomindices:
-        #                 self._bondorders_by_atomindices[topat1] = {}
-        #             if not topat2 in self._bondorders_by_atomindices:
-        #                 self._bondorders_by_atomindices[topat2] = {}
-        #             self._bondorders_by_atomindices[topat2][topat1] = order
-        #             self._bondorders_by_atomindices[topat1][topat2] = order
-        #
         for mol in self._reference_molecules:
             # Pull mappings for this molecule
             mappings = self._reference_to_topology_atom_mappings[mol]
             # Loop over bonds
+            # Chem.Kekulize(mol)
             for idx,bond in enumerate(mol.GetBonds()):
                 # Get atom indices involved in bond
                 at1 = bond.GetBeginAtom().GetIdx()
@@ -464,12 +434,12 @@ class _Topology(Topology):
                 # Get bond order
                 if not Wiberg:  #TODO here (sw)
                     # order = bond.GetOrder()
-                    #Chem.Kekulize(mol)
                     #order = int(bond.GetBondTypeAsDouble())
-                    order = (bond.GetBondTypeAsDouble())
+                    order = math.ceil(bond.GetBondTypeAsDouble())
                 # else:
                 #     order = bond.GetData('WibergBondOrder')
                 # Convert atom numbers to topology atom numbers; there may be multiple matches
+                # print(order)
                 for mapping in mappings:
                     topat1 = None
                     topat2 = None
