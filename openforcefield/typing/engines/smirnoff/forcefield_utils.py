@@ -32,10 +32,13 @@ import numpy as np
 from openmoltools import system_checker
 import copy
 
-import openeye.oechem
-import openeye.oeomega
-import openeye.oequacpac
-from openeye import oechem
+try:
+    import openeye.oechem
+    import openeye.oeomega
+    import openeye.oequacpac
+    from openeye import oechem
+except ModuleNotFoundError:
+    print("Unable to Import OpenEye Moldules in forcefield_utils")
 
 from simtk import openmm, unit
 import parmed

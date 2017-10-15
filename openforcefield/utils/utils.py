@@ -21,13 +21,16 @@ import numpy
 import random
 import parmed
 
-import openeye.oechem
-import openeye.oeomega
-import openeye.oequacpac
+try:
+    import openeye.oechem
+    import openeye.oeomega
+    import openeye.oequacpac
 
-from openeye.oechem import *
-from openeye.oeomega import *
-from openeye.oequacpac import *
+    from openeye.oechem import *
+    from openeye.oeomega import *
+    from openeye.oequacpac import *
+except ModuleNotFoundError:
+    print("Unable to Import OpenEye Moldules in utils")
 
 from simtk.openmm import app
 from simtk.openmm.app import element as elem

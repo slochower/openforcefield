@@ -42,11 +42,14 @@ import re
 import numpy
 import random
 
-import openeye.oechem
-import openeye.oeomega
-import openeye.oequacpac
+try:
+    import openeye.oechem
+    import openeye.oeomega
+    import openeye.oequacpac
 
-from openeye import oechem, oequacpac
+    from openeye import oechem, oequacpac
+except ModuleNotFoundError:
+    print("Unable to Import OpenEye Moldules in forcefield")
 
 from openforcefield.typing.chemistry import ChemicalEnvironment, SMIRKSParsingError
 

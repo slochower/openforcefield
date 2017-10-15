@@ -140,6 +140,7 @@ def getSMIRKSMatches_RDKMol(rdkmol, smirks, aromaticity_model = None):
     # Perform matching on each mol
     matches = list()
 
+    # print(smirks)
     for match in mol.GetSubstructMatches(qmol, uniquify = False) :
         mas = [match[x] for x in map_list]
         matches.append(tuple(mas))

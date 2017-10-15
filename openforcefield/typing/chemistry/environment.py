@@ -26,8 +26,12 @@ import networkx as nx
 import re
 import copy
 
-import openeye.oechem
-from openeye.oechem import *
+try:
+    import openeye.oechem
+    from openeye.oechem import *
+
+except ModuleNotFoundError:
+    print("Unable to Import OpenEye Moldules in environment")
 
 import numpy as np
 from numpy import random
