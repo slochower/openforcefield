@@ -20,6 +20,8 @@ import re
 import numpy
 import random
 import parmed
+from rdkit import Chem
+from rdkit import Geometry
 
 try:
     import openeye.oechem
@@ -492,3 +494,79 @@ def read_typelist(filename):
     ifs.close()
 
     return typelist
+
+def oemol_to_rdkmol(oemol, verbose=True):
+    """
+    This function converts an OpenMM topology in an OEMol
+    Parameters:
+    -----------
+    oemol : OpenEye Moleulce
+    verbose: Bool
+        print or not information
+    Return:
+    -------
+    rdkmol :
+        The generated RDKit molecule
+    """
+    _bondtypes = {1: Chem.BondType.SINGLE,
+                  1.5: Chem.BondType.AROMATIC,
+                  2: Chem.BondType.DOUBLE,
+                  3: Chem.BondType.TRIPLE,
+                  4: Chem.BondType.QUADRUPLE,
+                  5: Chem.BondType.QUINTUPLE,
+                  6: Chem.BondType.HEXTUPLE,
+                  7: Chem.BondType.ONEANDAHALF,}
+    # Create an empty OEMol
+    rdkmol = Chem.RWMol()
+
+    # Mapping dictionary between openmm atoms and oe atoms
+    # oe_atom_to_rdk_atom = {}
+
+    for atom in oemol.GetAtoms():
+        rdkatom = Chem.Atom(atom.GetAtomicNum())
+        # Aromatic handling
+        if atom.IsAromatic():
+            rdkatom.SetIsAromatic(True)
+        rdkmol.AddAtom(rdkatom)
+        # oe_atom_to_rdk_atom[atom] = rdkatom
+        # oe_atom_to_rdk_atom[atom.GetIdx()] = rdkatom
+
+    if oemol.NumAtoms() != rdkmol.GetNumAtoms():
+        raise ValueError("RDKMol and OEMol number of atoms mismatching: "
+                             "RDKMol = {} vs OEMol  = {}".format(rdkmol.GetNumAtoms(), oemol.NumAtoms()))
+
+    for idx,bond in enumerate(oemol.GetBonds()):
+        # Get atom indices involved in bond
+        at1 = bond.GetBgn().GetIdx()
+        at2 = bond.GetEnd().GetIdx()
+
+        # Get bond ordr
+        order = bond.GetOrder()
+
+        # If bond order info are not present set the bond order to one
+        if not order:
+            if verbose:
+                print("WARNING: Bond order info missing between atom indexes: {}-{}".format(at1, at2))
+            order = 1
+        # Aromatic handling
+        elif bond.IsAromatic():
+            order = 1.5
+
+        rdkmol.AddBond(at1, at2, _bondtypes[order])
+
+    if oemol.NumBonds() != rdkmol.GetNumBonds():
+        raise ValueError("RDKMol and OEMol number of bonds mismatching: "
+                             "RDKMol = {} vs OEMol  = {}".format(rdkmol.GetNumBonds, oemol.NumBonds()))
+
+
+    # Add cooridnates
+    conformer = Chem.Conformer()
+    coords = oemol.GetCoords()
+    for index in range(oemol.NumAtoms()):
+        x,y,z = coords[index]
+        conformer.SetAtomPositions(index, Geometry.Point3D(x,y, z))
+
+    rdkmo.AddConformer(conformer)
+
+    # print(Chem.MolToSmiles(rdkmol, isomericSmiles = True))
+    return rdkmol
