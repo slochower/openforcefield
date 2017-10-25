@@ -576,4 +576,4 @@ def oemol_to_rdkmol(oemol, verbose=True):
     rdkmol.UpdatePropertyCache(strict=False)
     Chem.GetSSSR(rdkmol)
 
-    return rdkmol
+    return rdkmol.GetMol()
