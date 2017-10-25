@@ -524,6 +524,8 @@ def oemol_to_rdkmol(oemol, verbose=True):
 
     for atom in oemol.GetAtoms():
         rdkatom = Chem.Atom(atom.GetAtomicNum())
+        # Charging
+        rdkatom.SetFormalCharge(atom.GetFormalCharge())
         # Aromatic handling
         if atom.IsAromatic():
             rdkatom.SetIsAromatic(True)
@@ -564,9 +566,14 @@ def oemol_to_rdkmol(oemol, verbose=True):
     coords = oemol.GetCoords()
     for index in range(oemol.NumAtoms()):
         x,y,z = coords[index]
-        conformer.SetAtomPositions(index, Geometry.Point3D(x,y, z))
+        conformer.SetAtomPosition(index, Geometry.Point3D(x,y, z))
 
-    rdkmo.AddConformer(conformer)
+    rdkmol.AddConformer(conformer)
 
     # print(Chem.MolToSmiles(rdkmol, isomericSmiles = True))
+    rdkmol.SetProp("_Name", oemol.GetTitle())
+
+    rdkmol.UpdatePropertyCache(strict=False)
+    Chem.GetSSSR(rdkmol)
+
     return rdkmol
