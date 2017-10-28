@@ -109,8 +109,11 @@ def getSMIRKSMatches_OEMol(oemol, smirks, aromaticity_model = None):
         oechem.OEAssignAromaticFlags( mol, oearomodel)
         # avoid running OEPrepareSearch or we lose desired aromaticity, so instead:
         oechem.OEAssignHybridization( mol)
+<<<<<<< HEAD
         # oechem.OEAssignFormalCharges( mol)
         # oechem.OEAssignImplicitHydrogens( mol)
+=======
+>>>>>>> 2046cacb4ae4695989aed3c17adf1134835dc048
 
     # Perform matching on each mol
     matches = list()
@@ -1358,7 +1361,11 @@ class ConstraintGenerator(object):
         # Iterate over all defined constraint SMIRKS, allowing later matches to override earlier ones.
         constraints = ValenceDict()
         for constraint in self._constraint_types:
+<<<<<<< HEAD
             for atom_indices in topology.getSMIRKSMatches_OEMol( oemol, constraint.smirks, aromaticity_model = self.ff._aromaticity_model):
+=======
+            for atom_indices in getSMIRKSMatches_OEMol(oemol, constraint.smirks, aromaticity_model = self.ff._aromaticity_model):
+>>>>>>> 2046cacb4ae4695989aed3c17adf1134835dc048
                 constraints[atom_indices] = constraint
 
         if verbose:
@@ -1366,7 +1373,11 @@ class ConstraintGenerator(object):
             print('ConstraintGenerator:')
             print('')
             for constraint in self._constraint_types:
+<<<<<<< HEAD
                 print('%64s : %8d matches' % (constraint.smirks, len(topology.getSMIRKSMatches_OEMol( oemol, constraint.smirks, aromaticity_model = self.ff._aromaticity_model))))
+=======
+                print('%64s : %8d matches' % (constraint.smirks, len(getSMIRKSMatches_OEMol(oemol, constraint.smirks, aromaticity_model = self.ff._aromaticity_model))))
+>>>>>>> 2046cacb4ae4695989aed3c17adf1134835dc048
             print('')
 
         # Add all bonds to the output list
