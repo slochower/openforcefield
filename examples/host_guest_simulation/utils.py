@@ -1,9 +1,29 @@
+#!/usr/bin/env python
+
+"""
+Provides helper functions for converting between AMBER files and OpenEye OEMols.
+"""
+
 import numpy as np
 from openeye.oechem import *
 from openforcefield.typing.engines.smirnoff import *
 from networkx.algorithms import isomorphism
 
+
 def process_and_convert(smiles, reference_file, name):
+    """
+    Wrapper to map between a SMILES string and externally prepared `mol2` file.
+
+    Parameters
+    ----------
+    smiles : str
+        A SMILES string
+    reference_file : str
+        mol2 file containing the SMILES string
+    name: str
+        Title for the molecule
+
+    """
     smiles_mol = process_smiles(smiles, name=name, add_hydrogens=True)
     reference_mol = load_mol2(reference_file, name=name, add_tripos=True)
     reference_to_target_mapping = atom_mapping(reference_mol, smiles_mol)
