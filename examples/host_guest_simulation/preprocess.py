@@ -6,6 +6,7 @@ Create an OpenMM compatible PDB file using AMBER inputs.
 
 import subprocess as sp
 
+
 def create_pdb_with_conect(solvated_pdb, amber_prmtop, output_pdb, path='./'):
     """
     Create a PDB file containing CONECT records.

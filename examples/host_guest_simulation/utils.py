@@ -28,9 +28,11 @@ def process_and_convert(smiles, reference_file, name):
     reference_mol = load_mol2(reference_file, name=name, add_tripos=True)
     reference_to_target_mapping = atom_mapping(reference_mol, smiles_mol)
     smiles_mol = remap_charges(reference_to_target_mapping, reference_mol, smiles_mol)
+    smiles_mol = remap_type(reference_to_target_mapping, reference_mol, smiles_mol)
     smiles_mol = remap_coordinates(reference_to_target_mapping, reference_mol, smiles_mol)
     print('Either use the returned `OEMol()` or save as `mol2` to continue...')
     return smiles_mol
+
 
 def load_mol2(filename, name=None, add_tripos=True):
     ifs = oemolistream()
@@ -43,12 +45,15 @@ def load_mol2(filename, name=None, add_tripos=True):
             mol.SetTitle(name)
         return mol
 
-def save_mol2(filename, mol):
+
+def save_mol2(filename, mol, standard=True):
     ofs = oemolostream()
     if not ofs.open(filename):
         print(f'Unable to open {filename} for writing...')
-    OEWriteMolecule(ofs, mol)
+    if standard:
+        OEWriteMolecule(ofs, mol)
     ofs.close()
+
 
 def add_waters_and_ions():
     smiles = ['[Na+]', '[Cl-]', 'O']
@@ -68,6 +73,7 @@ def process_smiles(string, name=None, add_hydrogens=True, add_tripos=True):
     if name:
         mol.SetTitle(name)
     return mol
+
 
 def atom_mapping(reference, target):
     reference_topology = create_topology(reference)
@@ -93,13 +99,17 @@ def atom_mapping(reference, target):
         print('Graph is not isomorphic.')
     return reference_to_target_mapping
 
+
 def create_topology(mol):
     return generateTopologyFromOEMol(mol)
+
 
 def create_graph(topology):
     return generateGraphFromTopology(topology)
 
+
 def remap_charges(reference_to_target_mapping, reference_mol, target_mol):
+    print('Remap charges...')
     print('Existing → New')
     assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
     for (reference_atom, target_atom) in reference_to_target_mapping.items():
@@ -116,7 +126,26 @@ def remap_charges(reference_to_target_mapping, reference_mol, target_mol):
     return target_mol
 
 
+def remap_type(reference_to_target_mapping, reference_mol, target_mol):
+    print('Remap atom types...')
+    print('Existing → New')
+    assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
+    for (reference_atom, target_atom) in reference_to_target_mapping.items():
+        reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
+        reference_type = reference.GetType()
+
+        target = target_mol.GetAtom(OEHasAtomIdx(target_atom))
+        # This will be zero, if the target molecule was built from SMILES
+        target_type = target.GetType()
+        target_name = target.GetName()
+
+        target.SetType(reference_type)
+        print(f'({target_name:4}) {target_type:4} → {target.GetType():4}')
+    return target_mol
+
+
 def remap_coordinates(reference_to_target_mapping, reference_mol, target_mol):
+    print('Remap coordinates...')
     print('Existing → New')
     assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
     mapped_coordinates = np.zeros((reference_mol.GetMaxAtomIdx(), 3))
