@@ -12,4 +12,10 @@ Many of these things might be able to work, given a little bit more ingenuity an
 - Read in a PDB file with `CONECT` records between water atoms, as can happen with TIP3P.
 - Read in a PDB file with water residue named `WAT` instead of `HOH` (**check**)
 - Save a cyclic molecule `prmtop`
-- 
+
+
+# To do...
+
+- Create a `frcmod` file via `parmchk`...
+- Create aligned PDBs
+- See if current `mol2` and `prmtop` files can actually run a simulation
