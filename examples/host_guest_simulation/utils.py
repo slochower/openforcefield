@@ -91,9 +91,8 @@ def atom_mapping(reference, target):
             reference_name = reference.GetAtom(OEHasAtomIdx(reference_atom)).GetName()
             reference_type = reference.GetAtom(OEHasAtomIdx(reference_atom)).GetType()
             target_name = target.GetAtom(OEHasAtomIdx(target_atom)).GetName()
-            target_type = target.GetAtom(OEHasAtomIdx(target_atom)).GetType()
 
-            print(f'({reference_name:4} [{reference_type:2}] ) {reference_atom:3d} → '
+            print(f'({reference_name:4} {reference_type:5}) {reference_atom:3d} → '
                   f'{target_atom:3d} ({target_name:4})')
     else:
         print('Graph is not isomorphic.')

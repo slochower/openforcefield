@@ -1,4 +1,0 @@
-
-parm solvated.prmtop
-trajin bcd-ben.pdb
-trajout bcd-ben-conect.pdb conect
