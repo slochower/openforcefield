@@ -26,7 +26,7 @@ def process_and_convert(smiles, reference_file, name):
 
     """
     smiles_mol = process_smiles(smiles, name=name, add_hydrogens=True)
-    reference_mol = load_mol2(reference_file, name=name, add_tripos=False)
+    reference_mol = load_mol2(reference_file, name=name, add_tripos=True)
     reference_to_target_mapping = atom_mapping(reference_mol, smiles_mol)
     smiles_mol = remap_names(reference_to_target_mapping, reference_mol, smiles_mol)
     smiles_mol = remap_charges(reference_to_target_mapping, reference_mol, smiles_mol)
