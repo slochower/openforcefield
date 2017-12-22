@@ -1,0 +1,5 @@
+parm host-cb7.pdb
+parm guest-1.pdb
+#trajin host-cb7.pdb
+#trajin guest-1.pdb
+#trajout complex.pdb conect
