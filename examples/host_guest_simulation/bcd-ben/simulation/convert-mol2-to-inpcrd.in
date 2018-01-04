@@ -1,0 +1,3 @@
+parm bcd.pmd.prmtop
+trajin bcd.pmd.mol2
+trajout bcd.pmd.inpcrd

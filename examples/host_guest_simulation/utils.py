@@ -68,6 +68,16 @@ def save_mol2(filename, mol, standard=True, add_tripos=True):
     ofs.close()
 
 
+def save_pdb(filename, mol):
+    ofs = oemolostream()
+    if not ofs.open(filename):
+        print(f'Unable to open {filename} for writing...')
+    flavor = OEOFlavor_Generic_Default | OEOFlavor_PDB_Default
+    ofs.SetFlavor(OEFormat_PDB, flavor)
+    OEWriteMol2File(ofs, mol)
+    ofs.close()
+
+
 def add_waters_and_ions():
     smiles = ['[Na+]', '[Cl-]', 'O']
     molecules = []

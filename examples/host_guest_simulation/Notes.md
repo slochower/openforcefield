@@ -3,7 +3,8 @@
 # Some things that don't...
 Many of these things might be able to work, given a little bit more ingenuity and tenacity. I don't want to claim they are broken (though some of them certainly seem so), only that I haven't found these paths to give a viable outcome.
 
-- Write `mol2` via ParmEd (e.g., `structure.save(file.mol2)`) after using `oemmutils` to convert an `OEMol` to an OpenMM topology. The `mol2` file won't have any atom types. Didn't investigate why.
+- Write `mol2` via ParmEd (e.g., `structure.save(file.mol2)`) after using `oemmutils` to convert an `OEMol` to an OpenMM topology. The `mol2` file won't have any atom types. Didn't investigate why.(**I'm not sure this is still the case. Investigate.**)
+- Write `mol2` via ParmEd (e.g., `structure.save(file.mol2)`) after using `oemmutils` to convert an `OEMol` to an OpenMM topology. The `mol2` file won't have positions, even though writing *before* using `oemmutils` (i.e., directly from OpenEye) will have but not have SMIRNOFF atom types.
 - Start from `mol2` files with GAFF atom types.
 - Start from `mol2` files with water or ions. These are more easily generated directly as `OEMol`s.
 - Build cyclodextrin (or other host macrocycle) from SMILES and expect reasonable coordinates.
