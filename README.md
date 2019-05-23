@@ -1,94 +1,82 @@
-[![Build Status](https://travis-ci.org/open-forcefield-group/openforcefield.svg?branch=master)](https://travis-ci.org/open-forcefield-group/openforcefield?branch=master)
+| **Status** | [![Travis build](https://img.shields.io/travis/openforcefield/openforcefield/master.svg?logo=linux&logoColor=white)](https://travis-ci.org/openforcefield/openforcefield) [![Codecov coverage](https://img.shields.io/codecov/c/github/openforcefield/openforcefield.svg?logo=Codecov&logoColor=white)](https://codecov.io/gh/openforcefield/openforcefield) [![LGTM analysis](https://img.shields.io/lgtm/grade/python/g/openforcefield/openforcefield.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/openforcefield/openforcefield/context:python) |
+| :------ | :------- |
+| **Latest Release** | [![Last release tag](https://img.shields.io/github/release-pre/openforcefield/openforcefield.svg)](https://github.com/openforcefield/openforcefield/releases)  [![Commits since release](https://img.shields.io/github/commits-since/openforcefield/openforcefield/0.2.1.svg)](https://github.com/openforcefield/openforcefield/releases/tag/0.2.1)  [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.597754.svg)](https://doi.org/10.5281/zenodo.597754) |
+| **Communication** | [![docs latest](https://img.shields.io/badge/docs-latest-5077AB.svg?logo=read%20the%20docs)](https://open-forcefield-toolkit.readthedocs.io/en/latest/) [![dev chat on slack](https://img.shields.io/badge/dev_chat-on_slack-808493.svg?logo=slack)](https://join.slack.com/t/openforcefieldgroup/shared_invite/enQtNjA4MTMxMDg0MDAxLWY3Y2Q5NDY4MmU1OTIzMDhiYzFjOWFkZGFjN2Y4N2Q4OTRkOWNjODVhMDMxMzkwMDcxNDA5MjYyNjJjYjE2NTM) |
+| **Foundation** | [![license](https://img.shields.io/github/license/openforcefield/openforcefield.svg)](https://opensource.org/licenses/MIT) [![platforms](https://img.shields.io/badge/Platforms-Linux%2C%20MacOS-orange.svg)](https://open-forcefield-toolkit.readthedocs.io/en/latest/installation.html) [![python](https://img.shields.io/badge/python-3.6%2C%203.7-blue.svg)](https://open-forcefield-toolkit.readthedocs.io/en/latest/installation.html) [![Funding](https://img.shields.io/badge/Funding-Open%20Force%20Field%20Consortium-brightgreen.svg)](http://openforcefield.org) |
+| **Installation** | [![Releases](https://img.shields.io/badge/obtain-latest-green.svg)](https://github.com/openforcefield/openforcefield/releases) [![Conda](https://img.shields.io/conda/v/omnia/openforcefield.svg)](https://anaconda.org/omnia/openforcefield) [![Last updated](https://anaconda.org/omnia/openforcefield/badges/latest_release_relative_date.svg)](https://anaconda.org/omnia/openforcefield) [![Anaconda Cloud downloads](https://anaconda.org/omnia/openforcefield/badges/downloads.svg)](https://anaconda.org/omnia/openforcefield) |
 
-# Open Forcefield Group toolkit
+# The Open Force Field toolkit
 
-This repository contains a number of tools from the [Open Force Field Group](http://github.com/open-forcefield-group) for the development and use of modern molecular mechanics forcefields based on direct chemical perception and parameterized with rigorous statistical methods.
+The Open Force Field Toolkit, built by the [Open Force Field Initiative](http://openforcefield.org), is a Python toolkit for the development and application of modern molecular mechanics force fields based on direct chemical perception and rigorous statistical parameterization methods.
 
-This repository hosts tools that we have committed to stably maintain throughout their lifetimes:
-* The [SMIRks Native Open Force Field (SMIRNOFF)](https://github.com/open-forcefield-group/openforcefield/blob/master/The-SMIRNOFF-force-field-format.md) direct chemical perception forcefield specification language
-* Tools for direct chemical environment perception and manipulation
+The toolkit currently covers two main areas we have committed to stably maintain throughout their lifetimes:
+* Tools for using the [SMIRKS Native Open Force Field (SMIRNOFF) specification](https://open-forcefield-toolkit.readthedocs.io/en/latest/smirnoff.html)
+* Tools for [direct chemical environment perception](https://dx.doi.org/10.1021/acs.jctc.8b00640) and manipulation
+
+## Documentation
+
+[Documentation](https://open-forcefield-toolkit.readthedocs.io/en/latest/) for the `openforcefield` toolkit is hosted at [readthedocs](https://open-forcefield-toolkit.readthedocs.io/en/latest).
 
 ## Installation
-We currently support Python 2.7, 3.5 and 3.6.
 
-We recommend the [miniconda](http://conda.pydata.org/miniconda.html) Python distribution.
-To install `miniconda` on `osx` with `bash`, this is:
-```bash
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-bash Miniconda3-latest-MacOSX-x86_64.sh -b -p $HOME/miniconda3
-export PATH="$HOME/miniconda3/bin:${PATH}"
-```
-These tools currently require the OpenEye toolkit (which requires a [license](https://www.eyesopen.com/licensing-philosophy) that is free for academics indenting to rapidly release results into the public domain):
-```bash
-pip install -i https://pypi.anaconda.org/OpenEye/simple OpenEye-toolkits
-```
-Install `openforcefield` tools via conda:
-```bash
-conda install --yes -c conda-forge -c omnia openforcefield
-```
+`openforcefield` is a Python toolkit, and supports Python 3.6 and 3.7.
 
-# Tools
+### Installing via conda
 
-## `SMIRNOFF`: SMIRks Native Open Force Field
+Detailed installation instructions can be found [here](https://open-forcefield-toolkit.readthedocs.io/en/latest/installation.html).
 
-This repository houses the SMIRNOFF SMIRKS-based force field format, along with classes to parameterize OpenMM systems given [SMIRNOFF `.ffxml` format files](https://github.com/open-forcefield-group/openforcefield/blob/master/The-SMIRNOFF-force-field-format.md).
+### Installing from source
 
-The SMIRNOFF force field format is documented [here](https://github.com/open-forcefield-group/smirnoff/blob/master/The-SMIRNOFF-force-field-format.md).
+If you need to install via source, see the build and run package requirements listed in the [development conda recipe](https://github.com/openforcefield/openforcefield/blob/master/devtools/conda-recipe/meta.yaml).
 
-The SMIRNOFF forcefield format is available in sample form under `data/forcefield`, and is handled by `forcefield.py`.
- An example comparing SMIRNOFF versus AMBER energies for the parm@frosst forcefield is provided under
-examples/SMIRNOFF_comparison, where two scripts can compare energies for a single molecule or for the entire AlkEthOH set.
-Note that two forcefields are currently available in this format, `Frosst_AlkEthOH.ffxml`,
-the parm@frosst forcefield as it should have been for this set, and `Frosst_AlkEthOH_parmAtFrosst.ffxml`,
-the forcefield as it was actually implemented (containing several bugs as noted in the file itself).
+# Toolkit features
 
-It can also be of interest to know what SMIRNOFF parameters would be applied to particular molecules. Utility functionality for this is provided under `forcefield_labeler.py`, which has generally similar structure to `forcefield.py` but instead of providing OpenMM systems with parameters, it can be applied to specific molecules and returns information about what parameters would be applied.
+## The SMIRKS Native Open Force Field (SMIRNOFF) format
 
-### Example usage
+This repository provides tools for using the [SMIRKS Native Open Force Field (SMIRNOFF) specification](https://open-forcefield-toolkit.readthedocs.io/en/latest/smirnoff.html), which currently supports an XML representation for force field definition files.
 
-The SMIRNOFF `ForceField` class is essentially a drop-in replacement for the [OpenMM `ForceField` class](http://docs.openmm.org/7.1.0/api-python/generated/simtk.openmm.app.forcefield.ForceField.html#simtk.openmm.app.forcefield.ForceField), with the additional requirement that an OpenEye `OEMol`-compatible object must also be provided to allow for chemical environment perception (and optionally charges).
-For example, if we have an `OEMol` named `mol`, we can create an OpenMM `System` object with the following code:
+By convention, files containing [XML representations](https://en.wikipedia.org/wiki/XML) of SMIRNOFF force fields carry `.offxml` extensions.
+
+Example SMIRNOFF `.offxml` force field definitions can be found in [`openforcefield/data/test_forcefields/`](https://github.com/openforcefield/openforcefield/tree/master/openforcefield/data/test_forcefields). These force fields are for testing only, and we neither record versions of these files, nor do we guarantee their correctness or completeness.
+
+### Working with SMIRNOFF parameter sets
+
+The SMIRNOFF `ForceField` class is essentially a drop-in replacement for the [OpenMM `ForceField` class](http://docs.openmm.org/latest/api-python/generated/simtk.openmm.app.forcefield.ForceField.html#simtk.openmm.app.forcefield.ForceField).
+
 ```python
-# Import the SMIRNOFF forcefield engine and some useful tools
+# Load a molecule into the openforcefield Molecule object
+from openforcefield.topology import Molecule
+from openforcefield.utils import get_data_file_path
+sdf_file_path = get_data_file_path('molecules/ethanol.sdf')
+molecule = Molecule.from_file(sdf_file_path)
+
+# Create an openforcefield Topology object from the molecule
+from openforcefield.topology import Topology
+topology = Topology.from_molecules(molecule)
+
+# Load the smirnoff99Frosst SMIRNOFF force field definition
 from openforcefield.typing.engines.smirnoff import ForceField
-from openforcefield.utils import read_molecules, get_data_filename, generateTopologyFromOEMol
+forcefield = ForceField('test_forcefields/smirnoff99Frosst.offxml')
 
-# read in molecule from file in openforcefield/data/molecules/
-mols = read_molecules('benzene.mol2')
-
-# Get positions and topology in OpenMM-compatible format
-topology = generateTopologyFromOEMol(mols[0])
+# Create an OpenMM system representing the molecule with SMIRNOFF-applied parameters
+openmm_system = forcefield.create_openmm_system(topology)
 
 # Load a SMIRNOFF small molecule forcefield for alkanes, ethers, and alcohols
-FF_filename = get_data_filename('forcefield/Frosst_AlkEthOH_parmAtFrosst.ffxml')
-forcefield = ForceField(FF_filename)
-
-# Create the OpenMM system, additionally specifying a list of OEMol objects for the unique molecules in the system
-system = forcefield.createSystem(topology, mols)
+forcefield = ForceField('test_forcefields/Frosst_AlkEthOH_parmAtFrosst.offxml')
 ```
-See `examples/SMIRNOFF_simulation/` for a complete example of how SMIRNOFF can be used for small molecule vacuum simulations, and `examples/mixedFF_structure` for how to set up a system which uses an AMBER forcefield (in this case, AMBER99SB-ILDN) for a protein in combination with SMIRNOFF for a small molecules. Via ParmEd, this can be translated into GROMACS, AMBER, or CHARMM formats for use elsewhere (and additional formats via InterMol).
-**For an especially complete worked example, see complete setup of a host-guest simulation in water with SMIRNOFF**, including docking, 2D and 3D visualization, etc., in `examples/host_guest_simulation/smirnoff_host_guest.ipynb` (Jupyter notebook).
+Detailed examples of using SMIRNOFF with the toolkit can be found [in the documentation](https://open-forcefield-toolkit.readthedocs.io/en/latest/examples.html).
 
-### FAQs:
-See [`Chemical-starting-points.md`](Chemical-starting-points.md) for answers to a variety of common problems, such as:
-- Why do I need to provide molecules corresponding to the components of my system, or a Topology with bond orders?
-- Can I use an AMBER (or GROMACS) topology/coordinate file as a starting point for applying a SMIRNOFF force field?
-- What about starting from a PDB file?
+## Chemical environments: Chemical environment perception and manipulation
 
-## `ChemicalEnvironment`: Tools for chemical environment perception and manipulation
+The `ChemicalEnvironments` class can be used to parse and manipulate [tagged SMARTS strings](http://www.daylight.com/dayhtml/doc/theory/theory.smarts.html) or single-fragment [SMIRKS strings](http://www.daylight.com/dayhtml/doc/theory/theory.smirks.html) representing chemical environments with tagged atoms.
 
-ChemicalEnvironments are a python class used to parse and manipulate SMIRKS strings.
-They were created with the goal of being able to automatically sample over chemical perceptions space.
-Someday they will be used to generate SMIRKS patterns for SMIRKS Native-Open Force Fields parameters.
-These are initiated with SMIRKS strings for single molecules fragements`*` and then the information is stored for each atom and bond in the initial fragment.
-
-`*` NOTE SMIRKS can be used to show how a reaction would happen between fragments in different molecules. This is done with `'.'` between molecules and `'>>'` to indicate a reaction. Chemical Environments can only parse SMIRKS strings for fragments of a single molecule.  
+### Working with chemical environments
 
 ```python
 from openforcefield.typing.chemistry import environment
 
 smirks = "[#6X3,#7:1]~;@[#8;r:2]~;@[#6X3,#7:3]"
-angle = environment.AngleChemicalEnvironment(smirks = smirks)
+angle = environment.AngleChemicalEnvironment(smirks=smirks, toolkit='rdkit')
 print(angle.asSMIRKS())
 # "[#6X3,#7:1]~;@[#8;r:2]~;@[#6X3,#7:3]"
 
@@ -102,29 +90,15 @@ print(alpha.asSMIRKS()) # smirks for atom only
 print(angle.asSMIRKS())
 # "[#6X3,#7:1]~;@[#8;r:2]~;@[#6X3,#7:3]~;!@[#8X2]"
 ```
-If you are not familiar with the SMIRKS language, take a look at these Daylight resources:
-* [SMILES](http://www.daylight.com/dayhtml_tutorials/languages/smiles/index.html)
-* [SMARTS](http://www.daylight.com/dayhtml/doc/theory/theory.smarts.html)
-* [SMIRKS](http://www.daylight.com/dayhtml_tutorials/languages/smirks/index.html)
+Daylight provides detailed specifications of the [SMILES](http://www.daylight.com/dayhtml_tutorials/languages/smiles/index.html), [SMARTS](http://www.daylight.com/dayhtml/doc/theory/theory.smarts.html), and [SMIRKS](http://www.daylight.com/dayhtml_tutorials/languages/smirks/index.html) languages.
 
-For more detailed examples see README and `using_environment.ipynb` in  `examples/chemicalEnvironments/`
+# Frequently asked questions (FAQ)
 
-# Manifest
-
-* `examples/` - some examples - look here to get started; see especially `host_guest_simulation` for a detailed worked example of SMIRNOFF simulation of host-guest binding.
-* `openforcefield/` - openforcefield tools
-* `devtools/` - continuous integration and packaging scripts and utilities
-* `utilities/` - utilities; scripts to convert parm@frosst modified `frcmod` files to SMIRNOFF XML
-* `oe_license.txt.enc` - encrypted OpenEye license for continuous integration testing
-* `.travis.yml` - travis-ci continuous integration file
-* `The-SMIRNOFF-force-field-format.md` - specifications for the SMIRNOFF force field format
-* `Chemical-starting-points.md` - discussion of appropriate starting points for applying a SMIRNOFF force field to a system
+See [`FAQ.md`](FAQ.md) for answers to a variety of common problems, such as:
+* Why do I need to provide molecules corresponding to the components of my system, or a `Topology` with bond orders?
+* Can I use an AMBER, CHARMM, or gromacs topology/coordinate file as a starting point for applying a SMIRNOFF force field?
+* What if I am starting from a PDB file?
 
 # Contributors
 
-* [David L. Mobley (UCI)](https://github.com/davidlmobley)
-* [John D. Chodera (MSKCC)](https://github.com/jchodera)
-* [Caitlin Bannan (UCI)](https://github.com/bannanc)
-* [Camila Zanette (UCI)](https://github.com/camizanette)
-* [Christopher I. Bayly (OpenEye)](https://github.com/cbayly13)
-* [Nathan M. Lim (UCI)](https://github.com/nathanmlim)
+For a full list of contributors, see the [GitHub Contributors page](https://github.com/openforcefield/openforcefield/graphs/contributors).

@@ -1,0 +1,29 @@
+name: openforcefield
+channels:
+    - conda-forge
+    - omnia
+    - defaults
+dependencies:
+    # readthedocs dependencies
+    - numpydoc
+    - nbsphinx
+    - sphinx_bootstrap_theme
+    - m2r >=0.2.1
+    - testpath ==0.3.1
+    # conda build dependencies
+    - python
+    - setuptools
+    - numpy
+    - openmm
+    - networkx
+    - parmed
+    - rdkit
+    - ambermini
+    - packaging
+    # Serialization: Should these be optional?
+    - toml
+    - bson
+    - msgpack-python
+    - xmltodict
+    - pyyaml
+    - cairo >=1.16
